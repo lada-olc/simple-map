@@ -20,7 +20,7 @@
 
 
 
-<div id="mapid" style="width: 600px; height: 400px;"></div>
+<div id="mapid" style="width: 800px; height: 600px;"></div>
 <script type="text/javascript">
 
 	var mymap = L.map('mapid', {
@@ -37,32 +37,34 @@
 		id: 'mapbox.streets'
 	}).addTo(mymap);
 
-var points = [];
-{% for point in points %}
-points.push({
-    "type": "Feature",
-    "properties": {
-        "name": "Coors Field",
-        "amenity": "Baseball Stadium",
-        "popupContent": "This is where the Rockies play!"
-    },
-    "geometry": {{point|safe}}
-});
-{% endfor %}
+var points = {{points|safe}};
+var lines = {{lines|safe}};
+var polygons = {{polygons|safe}};
 
 L.geoJSON(points, {
     style: function (feature) {
         return {color: feature.properties.color};
     }
 }).bindPopup(function (layer) {
-    return layer.feature.properties.description;
+    return layer.feature.geometry.properties.description;
 }).addTo(mymap);
 
-function onMapClick(e) {
-        jQuery.post("{{ url_for("add_point") }}", {point: JSON.stringify(L.marker(e.latlng).toGeoJSON())});
+L.geoJSON(lines, {
+    style: function (feature) {
+        return {color: '#00ff00'};
     }
+}).bindPopup(function (layer) {
+    return layer.feature.geometry.properties.description;
+}).addTo(mymap);
 
-mymap.on('click', onMapClick);
+L.geoJSON(polygons, {
+    style: function (feature) {
+        return {color: '#ff0000'};
+    }
+}).bindPopup(function (layer) {
+    return layer.feature.geometry.properties.description;
+}).addTo(mymap);
+
 </script>
 
 

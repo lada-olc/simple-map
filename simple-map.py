@@ -1,7 +1,11 @@
-from flask import Flask, render_template, request
+import sqlite3
+import json
+
+from flask import Flask, render_template
+
 app = Flask(__name__)
 
-import sqlite3
+
 
 @app.route('/')
 def index():
@@ -9,27 +13,20 @@ def index():
     connection.enable_load_extension(True)
     connection.execute("SELECT load_extension('mod_spatialite')")
     
-    result = connection.execute("SELECT pkuid, name, description, asgeojson(geometry) FROM points2")
-    print(result)
-    points = [row[3] for row in result]
-    
+    points = load_objects(connection, "points")
+    lines = load_objects(connection, "lines")
+    polygons = load_objects(connection, "polygons")
+
     connection.close()
-    print(points)    
-    
-    return render_template('simple-map.html', points=points)
 
-@app.route('/add_point', methods=('GET', 'POST'))
-def add_point():
-    if request.method == 'POST':
-        connection = sqlite3.connect("space-race-hackathon.sqlite")
-        connection.enable_load_extension(True)
-        connection.execute("SELECT load_extension('mod_spatialite')")
-#        connection.execute("SELECT DisableSpatialIndex( 'points2' , 'geometry' )")
-    
-        cursor = connection.cursor()
-        point = request.form['point']
-        cursor.execute(f"INSERT INTO points2 (geometry) VALUES (GeomFromGeoJSON('{point}'))")
-        connection.commit()
+    return render_template('simple-map.html', points=json.dumps(points), lines=json.dumps(lines), polygons=json.dumps(polygons))
 
-        connection.close()
-    return "OK"
+
+def load_objects(connection, table_name):
+    result = connection.execute(f"SELECT pkuid, name, description, asgeojson(geometry) FROM {table_name}")
+    items = []
+    for row in result:
+        geometry = json.loads(row[3])
+        geometry["properties"] = {"description": row[1] or ''}
+        items.append(geometry)
+    return items
