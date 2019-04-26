@@ -6,8 +6,9 @@
 
 ## Quick guide to present geographic data on web
 
-- Download this project.
-- Open Windows cmd
+- Download this project: https://github.com/lada-olc/simple-map/archive/master.zip
+- Unzip the project
+- Open Windows cmd in the project root folder
 - [Optional] Activate your virtual environment
 - Install Flask with `pip install Flask` to your Python
 - Run these commands:
